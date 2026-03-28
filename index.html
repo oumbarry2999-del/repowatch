@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -8,9 +7,9 @@
     body { font-family: Arial; background: #0d1117; color: white; text-align: center; padding: 50px; }
     h1 { color: #58a6ff; font-size: 3em; }
     p { color: #8b949e; font-size: 1.2em; }
-    input { padding: 10px; width: 300px; border-radius: 8px; border: none; margin: 10px; }
+    input { padding: 10px; width: 300px; border-radius: 8px; border: none; margin: 10px; font-size: 1em; }
     button { padding: 10px 20px; background: #238636; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; }
-    #result { margin-top: 30px; background: #161b22; padding: 20px; border-radius: 10px; }
+    #result { margin-top: 30px; background: #161b22; padding: 20px; border-radius: 10px; display: none; }
   </style>
 </head>
 <body>
@@ -21,18 +20,30 @@
   <div id="result"></div>
   <script>
     async function analyser() {
-      const repo = document.getElementById('repo').value;
-      const res = await fetch(`https://api.github.com/repos/${repo}`);
-      const data = await res.json();
-      document.getElementById('result').innerHTML = `
-        <h2>${data.full_name}</h2>
-        <p>⭐ Étoiles : ${data.stargazers_count}</p>
-        <p>🍴 Forks : ${data.forks_count}</p>
-        <p>👁️ Watchers : ${data.watchers_count}</p>
-        <p>🐛 Issues ouvertes : ${data.open_issues_count}</p>
-        <p>📝 Description : ${data.description}</p>
-      `;
+      const repo = document.getElementById('repo').value.trim();
+      if (!repo) { alert('Entrez un dépôt !'); return; }
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('result').innerHTML = 'Chargement...';
+      try {
+        const res = await fetch(`https://api.github.com/repos/${repo}`);
+        const data = await res.json();
+        if (data.message) {
+          document.getElementById('result').innerHTML = '❌ Dépôt introuvable !';
+          return;
+        }
+        document.getElementById('result').innerHTML = `
+          <h2>${data.full_name}</h2>
+          <p>⭐ Étoiles : ${data.stargazers_count.toLocaleString()}</p>
+          <p>🍴 Forks : ${data.forks_count.toLocaleString()}</p>
+          <p>👁️ Watchers : ${data.watchers_count.toLocaleString()}</p>
+          <p>🐛 Issues ouvertes : ${data.open_issues_count.toLocaleString()}</p>
+          <p>📝 Description : ${data.description || 'Aucune description'}</p>
+        `;
+      } catch(e) {
+        document.getElementById('result').innerHTML = '❌ Erreur de connexion !';
+      }
     }
   </script>
 </body>
 </html>
+
