@@ -5,16 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RepoWatch</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
     nav { background: #161b22; border-bottom: 1px solid #30363d; padding: 16px 40px; display: flex; align-items: center; justify-content: space-between; }
     nav h1 { color: #58a6ff; font-size: 1.4em; }
-    .nav-right { display: flex; align-items: center; gap: 12px; }
-    .btn-login { background: #238636; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9em; font-weight: 600; }
-    .btn-logout { background: #da3633; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9em; }
-    .user-name { color: #58a6ff; font-weight: 600; }
+    nav span { background: #238636; color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85em; }
     .hero { text-align: center; padding: 80px 20px 40px; }
     .hero h2 { font-size: 2.8em; font-weight: 700; margin-bottom: 16px; background: linear-gradient(90deg, #58a6ff, #79c0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .hero p { color: #8b949e; font-size: 1.1em; margin-bottom: 40px; }
@@ -36,13 +32,7 @@
 <body>
   <nav>
     <h1>🔭 RepoWatch</h1>
-    <div class="nav-right">
-      <span id="user-info" style="display:none">
-        <span class="user-name" id="user-name"></span>
-        <button class="btn-logout" onclick="logout()">Déconnexion</button>
-      </span>
-      <button class="btn-login" id="btn-login" onclick="login()">🐙 Connexion GitHub</button>
-    </div>
+    <span>✨ Gratuit</span>
   </nav>
   <div class="hero">
     <h2>Analysez n'importe quel dépôt GitHub</h2>
@@ -54,36 +44,7 @@
   </div>
   <div id="result"></div>
   <footer>© 2026 RepoWatch — Construit avec ❤️ par Barry</footer>
-
   <script>
-    const supabase = window.supabase.createClient(
-      'https://ivwbgknrdbijdavzvvac.supabase.co',
-      'sb_publishable_KtbWTpoGfnuS_sDe2THrXw_8iQy_28b'
-    );
-
-    async function checkUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        document.getElementById('user-info').style.display = 'flex';
-        document.getElementById('user-info').style.alignItems = 'center';
-        document.getElementById('user-info').style.gap = '10px';
-        document.getElementById('btn-login').style.display = 'none';
-        document.getElementById('user-name').textContent = '👤 ' + (user.user_metadata.user_name || user.email);
-      }
-    }
-
-    async function login() {
-      await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: { redirectTo: 'https://oumbarry2999-del.github.io/repowatch' }
-      });
-    }
-
-    async function logout() {
-      await supabase.auth.signOut();
-      location.reload();
-    }
-
     async function analyser() {
       const repo = document.getElementById('repo').value.trim();
       if (!repo) { alert('Entrez un dépôt !'); return; }
@@ -109,8 +70,6 @@
         result.innerHTML = '<div style="text-align:center;color:#f85149;padding:20px">❌ Erreur de connexion !</div>';
       }
     }
-
-    checkUser();
   </script>
 </body>
 </html>
