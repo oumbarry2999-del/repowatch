@@ -3,563 +3,186 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RepoWatch</title>
+  <title>RepoWatch — Analyse GitHub</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #080d13;
-      --surface: #0f1620;
-      --border: #1e2d40;
-      --accent: #3b82f6;
-      --accent2: #06b6d4;
-      --text: #e2eaf4;
-      --muted: #6b7f96;
-      --green: #22c55e;
-      --red: #ef4444;
+      --bg: #080d13; --surface: #0f1620; --border: #1e2d40;
+      --accent: #3b82f6; --accent2: #06b6d4; --text: #e2eaf4;
+      --muted: #6b7f96; --green: #22c55e; --red: #ef4444;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-      font-family: 'Syne', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      background-image:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(6,182,212,0.06) 0%, transparent 50%);
+      font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh;
+      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.12) 0%, transparent 60%);
     }
-
-    /* ── NAV ── */
     nav {
-      background: rgba(15,22,32,0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: rgba(15,22,32,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+      padding: 14px 40px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
     }
-    nav h1 {
-      font-size: 1.35em;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+    nav h1 { font-size: 1.35em; font-weight: 800; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .nav-right { display: flex; align-items: center; gap: 12px; }
-    .user-name {
-      color: var(--accent2);
-      font-weight: 700;
-      font-size: 0.9em;
-      font-family: 'Space Mono', monospace;
-    }
-
-    .btn {
-      padding: 8px 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.88em;
-      font-weight: 700;
-      font-family: 'Syne', sans-serif;
-      transition: all 0.2s;
-    }
-    .btn-login {
-      background: linear-gradient(135deg, var(--accent), #2563eb);
-      color: white;
-      box-shadow: 0 0 20px rgba(59,130,246,0.25);
-    }
-    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(59,130,246,0.4); }
-    .btn-logout { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
-    .btn-logout:hover { background: rgba(239,68,68,0.25); }
-
-    /* ── HERO ── */
-    .hero {
-      text-align: center;
-      padding: 90px 20px 50px;
-      animation: fadeUp 0.7s ease both;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .hero-badge {
-      display: inline-block;
-      background: rgba(59,130,246,0.1);
-      border: 1px solid rgba(59,130,246,0.25);
-      color: var(--accent);
-      font-size: 0.78em;
-      font-family: 'Space Mono', monospace;
-      padding: 5px 14px;
-      border-radius: 100px;
-      margin-bottom: 22px;
-      letter-spacing: 0.05em;
-    }
-    .hero h2 {
-      font-size: clamp(2em, 5vw, 3.2em);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-      margin-bottom: 16px;
-      background: linear-gradient(135deg, #e2eaf4 0%, #94b4d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero p { color: var(--muted); font-size: 1.05em; margin-bottom: 40px; }
-
-    /* ── SEARCH ── */
-    .search-box {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      max-width: 620px;
-      margin: 0 auto;
-    }
-    .search-box input {
-      flex: 1;
-      min-width: 260px;
-      padding: 14px 20px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      font-size: 0.97em;
-      font-family: 'Space Mono', monospace;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .search-box input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
-    }
-    .search-box input::placeholder { color: var(--muted); }
-    .btn-analyser {
-      padding: 14px 26px;
-      background: linear-gradient(135deg, var(--accent), #2563eb);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 0.95em;
-      font-weight: 700;
-      font-family: 'Syne', sans-serif;
-      transition: all 0.2s;
-      box-shadow: 0 0 20px rgba(59,130,246,0.2);
-      white-space: nowrap;
-    }
-    .btn-analyser:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(59,130,246,0.35); }
-    .btn-analyser:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-    /* ── RATE LIMIT BANNER ── */
-    #rate-banner {
-      display: none;
-      max-width: 680px;
-      margin: 20px auto 0;
-      padding: 10px 18px;
-      background: rgba(234,179,8,0.08);
-      border: 1px solid rgba(234,179,8,0.25);
-      border-radius: 8px;
-      color: #fbbf24;
-      font-size: 0.83em;
-      font-family: 'Space Mono', monospace;
-      text-align: center;
-    }
-
-    /* ── RESULT ── */
-    #result { max-width: 700px; margin: 40px auto; padding: 0 20px; display: none; }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-      animation: fadeUp 0.4s ease both;
-    }
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .card-header h2 {
-      color: var(--accent);
-      font-size: 1.3em;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      font-family: 'Space Mono', monospace;
-      word-break: break-all;
-    }
-    .repo-link {
-      margin-left: auto;
-      color: var(--muted);
-      font-size: 0.8em;
-      text-decoration: none;
-      font-family: 'Space Mono', monospace;
-      border: 1px solid var(--border);
-      padding: 4px 10px;
-      border-radius: 6px;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .repo-link:hover { border-color: var(--accent); color: var(--accent); }
-    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-    .stat {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      transition: border-color 0.2s;
-    }
-    .stat:hover { border-color: var(--accent); }
-    .stat .number { font-size: 1.7em; font-weight: 800; color: var(--accent); font-family: 'Space Mono', monospace; }
-    .stat .label { color: var(--muted); font-size: 0.82em; margin-top: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .description {
-      margin-top: 18px;
-      padding: 16px;
-      background: var(--bg);
-      border-radius: 10px;
-      color: var(--muted);
-      border-left: 3px solid var(--accent);
-      font-size: 0.93em;
-      line-height: 1.6;
-    }
-    .meta-row {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-    .meta-tag {
-      background: rgba(59,130,246,0.08);
-      border: 1px solid rgba(59,130,246,0.2);
-      color: var(--accent);
-      font-size: 0.78em;
-      padding: 4px 12px;
-      border-radius: 100px;
-      font-family: 'Space Mono', monospace;
-    }
-
-    /* ── AUTH STATUS ── */
-    #auth-status {
-      max-width: 680px;
-      margin: 24px auto 0;
-      text-align: center;
-      font-size: 0.82em;
-      font-family: 'Space Mono', monospace;
-    }
-    .status-dot {
-      display: inline-block;
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      margin-right: 6px;
-      vertical-align: middle;
-    }
-    .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .btn { padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: 'Syne'; transition: 0.2s; }
+    .btn-login { background: linear-gradient(135deg, var(--accent), #2563eb); color: white; }
+    .btn-logout { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+    .hero { text-align: center; padding: 80px 20px 40px; }
+    .hero h2 { font-size: clamp(2em, 5vw, 3.2em); margin-bottom: 15px; }
+    .search-box { display: flex; justify-content: center; gap: 10px; max-width: 600px; margin: 0 auto; }
+    .search-box input { flex: 1; padding: 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: white; font-family: 'Space Mono'; }
+    .btn-analyser { padding: 14px 25px; background: var(--accent); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    #result { max-width: 700px; margin: 30px auto; padding: 20px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 25px; }
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }
+    .stat { background: var(--bg); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
+    .meta-tag { background: rgba(59,130,246,0.1); color: var(--accent); padding: 4px 10px; border-radius: 5px; font-size: 0.8em; margin-right: 5px; }
+    #rate-banner { display: none; background: rgba(234,179,8,0.1); color: #fbbf24; padding: 10px; border-radius: 8px; margin-top: 20px; font-size: 0.8em; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+    .dot-green { background: var(--green); box-shadow: 0 0 5px var(--green); }
     .dot-gray { background: var(--muted); }
-
-    /* ── FOOTER ── */
-    footer {
-      text-align: center;
-      padding: 40px;
-      color: var(--muted);
-      font-size: 0.85em;
-      margin-top: 60px;
-      border-top: 1px solid var(--border);
-      font-family: 'Space Mono', monospace;
-    }
-
-    /* ── LOADER ── */
-    .loader {
-      text-align: center;
-      padding: 50px;
-      color: var(--accent);
-      font-family: 'Space Mono', monospace;
-    }
-    .spinner {
-      width: 32px; height: 32px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin: 0 auto 16px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .error-msg {
-      text-align: center;
-      color: var(--red);
-      padding: 30px;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.9em;
-      background: rgba(239,68,68,0.06);
-      border: 1px solid rgba(239,68,68,0.2);
-      border-radius: 12px;
-    }
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
   <nav>
     <h1>🔭 RepoWatch</h1>
     <div class="nav-right">
-      <!-- Affiché uniquement quand connecté -->
-      <div id="user-info" style="display:none; align-items:center; gap:10px;">
-        <span class="user-name" id="user-name"></span>
+      <div id="user-info" style="display:none; align-items:center; gap:12px;">
+        <span id="user-name" style="font-family:'Space Mono'; color:var(--accent2); font-size:0.9em;"></span>
         <button class="btn btn-logout" id="btn-logout">Déconnexion</button>
       </div>
-      <!-- Affiché uniquement quand déconnecté -->
-      <button class="btn btn-login" id="btn-login">🐙 Connexion GitHub</button>
+      <button class="btn btn-login" id="btn-login" style="display:block;">Connecter GitHub</button>
     </div>
   </nav>
 
-  <!-- HERO -->
   <div class="hero">
-    <div class="hero-badge">⚡ Analyse en temps réel</div>
-    <h2>Analysez n'importe quel<br>dépôt GitHub</h2>
-    <p>Statistiques instantanées • Open Source • 100% Gratuit</p>
+    <div style="color:var(--accent); font-family:'Space Mono'; margin-bottom:10px;">⚡ ANALYSE OPEN-SOURCE</div>
+    <h2>Analysez n'importe quel dépôt</h2>
     <div class="search-box">
-      <input id="repo" placeholder="ex: microsoft/vscode" autocomplete="off" />
-      <button class="btn-analyser" id="btn-analyser">🔍 Analyser</button>
+      <input id="repo" placeholder="propriétaire/nom-du-repo (ex: facebook/react)" />
+      <button class="btn-analyser" id="btn-analyser">Analyser</button>
     </div>
     <div id="rate-banner">
-      ⚠️ Mode non connecté — limité à 60 req/heure. <span id="rate-cta" style="cursor:pointer;text-decoration:underline;">Connectez-vous</span> pour 5 000 req/heure.
+      Limite : 60 req/h. <b id="rate-cta" style="text-decoration:underline; cursor:pointer;">Connectez-vous</b> pour passer à 5 000.
     </div>
-    <div id="auth-status" style="margin-top:16px;"></div>
+    <div id="auth-status" style="margin-top:20px; font-family:'Space Mono'; font-size:0.8em;"></div>
   </div>
 
-  <!-- RESULT -->
   <div id="result"></div>
 
-  <footer>© 2026 RepoWatch — Construit avec ❤️ par Barry</footer>
-
   <script>
-    // ── CONFIG ──
     const SUPABASE_URL = 'https://ivwbgknrdbijdavzvvac.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_KtbWTpoGfnuS_sDe2THrXw_8iQy_28b';
-    const REDIRECT_URL = 'https://oumbarry2999-del.github.io/repowatch';
+    const SITE_URL = window.location.origin + window.location.pathname;
 
-    // ── STATE ──
-    let githubToken = null;
-    let isLoggedIn = false;
+    let githubToken = localStorage.getItem('gh_token');
 
-    // ── INIT ──
+    // --- INITIALISATION ---
     window.addEventListener('DOMContentLoaded', () => {
       handleAuthCallback();
       checkSession();
     });
 
-    // ── GESTION AUTH ──
-
-    // Étape 1 : détecter le token dans l'URL après redirection OAuth
+    // --- AUTHENTIFICATION ---
     function handleAuthCallback() {
       const hash = window.location.hash;
-      if (!hash) return;
+      if (hash.includes('access_token')) {
+        const params = new URLSearchParams(hash.replace('#', '?'));
+        const sbToken = params.get('access_token');
+        const ghToken = params.get('provider_token');
 
-      const params = new URLSearchParams(hash.replace('#', '?'));
-      const accessToken = params.get('access_token');
-      const providerToken = params.get('provider_token'); // token GitHub réel
-
-      if (accessToken) {
-        localStorage.setItem('sb_access_token', accessToken);
-        if (providerToken) localStorage.setItem('gh_token', providerToken);
-        // Nettoyer l'URL
-        window.history.replaceState({}, document.title, window.location.pathname);
+        if (sbToken) localStorage.setItem('sb_access_token', sbToken);
+        if (ghToken) localStorage.setItem('gh_token', ghToken);
+        
+        window.history.replaceState(null, null, window.location.pathname);
       }
     }
 
-    // Étape 2 : vérifier si une session existe
     async function checkSession() {
-      const sbToken = localStorage.getItem('sb_access_token');
-
-      if (!sbToken) {
-        setLoggedOut();
-        return;
-      }
+      const token = localStorage.getItem('sb_access_token');
+      if (!token) return setLoggedOut();
 
       try {
         const res = await fetch(${SUPABASE_URL}/auth/v1/user, {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': Bearer ${sbToken}
-          }
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} }
         });
-
-        if (!res.ok) throw new Error('Session expirée');
-
+        if (!res.ok) throw new Error();
         const user = await res.json();
-
-        if (user && user.email) {
-          const userName = user.user_metadata?.user_name || user.email;
-          githubToken = localStorage.getItem('gh_token') || null;
-          setLoggedIn(userName);
-        } else {
-          throw new Error('Utilisateur invalide');
-        }
+        setLoggedIn(user.user_metadata?.user_name || user.email);
       } catch (e) {
-        // Session invalide — nettoyer
-        localStorage.removeItem('sb_access_token');
-        localStorage.removeItem('gh_token');
         setLoggedOut();
       }
     }
 
-    function setLoggedIn(userName) {
-      isLoggedIn = true;
+    function setLoggedIn(name) {
       document.getElementById('user-info').style.display = 'flex';
       document.getElementById('btn-login').style.display = 'none';
-      document.getElementById('user-name').textContent = '👤 ' + userName;
-
-      // Status bar
-      document.getElementById('auth-status').innerHTML = `
-        <span class="status-dot dot-green"></span>
-        <span style="color:#22c55e">Connecté</span>
-        <span style="color:var(--muted)"> — 5 000 requêtes/heure disponibles</span>
-      `;
+      document.getElementById('user-name').textContent = '👤 ' + name;
       document.getElementById('rate-banner').style.display = 'none';
+      document.getElementById('auth-status').innerHTML = '<span class="status-dot dot-green"></span> Connecté (5000 req/h)';
+      githubToken = localStorage.getItem('gh_token');
     }
 
     function setLoggedOut() {
-      isLoggedIn = false;
       document.getElementById('user-info').style.display = 'none';
-      document.getElementById('btn-login').style.display = 'inline-block';
-
-      document.getElementById('auth-status').innerHTML = `
-        <span class="status-dot dot-gray"></span>
-        <span style="color:var(--muted)">Non connecté — 60 requêtes/heure</span>
-      `;
+      document.getElementById('btn-login').style.display = 'block';
       document.getElementById('rate-banner').style.display = 'block';
-    }
-
-    // ── BOUTONS AUTH ──
-    document.getElementById('btn-login').addEventListener('click', () => {
-      const redirectUrl = encodeURIComponent('https://oumbarry2999-del.github.io/repowatch');
-      window.location.href = https://ivwbgknrdbijdavzvvac.supabase.co/auth/v1/authorize?provider=github&redirect_to=${redirectUrl}&scopes=read:user;
-    });
-
-    document.getElementById('btn-logout').addEventListener('click', async () => {
-      const sbToken = localStorage.getItem('sb_access_token');
-      try {
-        await fetch(${SUPABASE_URL}/auth/v1/logout, {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': Bearer ${sbToken}
-          }
-        });
-      } catch (e) { /* ignorer les erreurs réseau */ }
-
+      document.getElementById('auth-status').innerHTML = '<span class="status-dot dot-gray"></span> Mode Invité (60 req/h)';
       localStorage.removeItem('sb_access_token');
       localStorage.removeItem('gh_token');
       githubToken = null;
-      setLoggedOut();
-    });
+    }
 
-    // CTA dans le banner
-    document.getElementById('rate-cta').addEventListener('click', () => {
-      document.getElementById('btn-login').click();
-    });
+    // --- EVENEMENTS ---
+    document.getElementById('btn-login').onclick = () => {
+      window.location.href = ${SUPABASE_URL}/auth/v1/authorize?provider=github&redirect_to=${encodeURIComponent(SITE_URL)};
+    };
 
-    // ── ANALYSER ──
-    document.getElementById('btn-analyser').addEventListener('click', analyser);
-    document.getElementById('repo').addEventListener('keypress', e => {
-      if (e.key === 'Enter') analyser();
-    });
+    document.getElementById('btn-logout').onclick = () => setLoggedOut();
+    document.getElementById('rate-cta').onclick = () => document.getElementById('btn-login').click();
+
+    // --- ANALYSE ---
+    document.getElementById('btn-analyser').onclick = analyser;
 
     async function analyser() {
-      const repo = document.getElementById('repo').value.trim();
-      if (!repo) {
-        document.getElementById('repo').focus();
-        document.getElementById('repo').style.borderColor = 'var(--red)';
-        setTimeout(() => document.getElementById('repo').style.borderColor = '', 1500);
-        return;
-      }
+      const repoPath = document.getElementById('repo').value.trim();
+      if (!repoPath) return;
 
-      const result = document.getElementById('result');
+      const resultDiv = document.getElementById('result');
       const btn = document.getElementById('btn-analyser');
-      result.style.display = 'block';
+      
       btn.disabled = true;
-      btn.textContent = '⏳ Analyse...';
-
-      result.innerHTML = `
-        <div class="loader">
-          <div class="spinner"></div>
-          Récupération des données...
-        </div>`;
+      resultDiv.innerHTML = '<div style="text-align:center;">Chargement...</div>';
 
       try {
-        // Utiliser le token GitHub si connecté (5000 req/h) sinon anonyme (60 req/h)
-        const headers = {};
-        if (githubToken) headers['Authorization'] = token ${githubToken};
-
-        const res = await fetch(https://api.github.com/repos/${repo}, { headers });
-
-        // Vérifier le rate limit
-        const remaining = res.headers.get('X-RateLimit-Remaining');
-        if (remaining !== null && parseInt(remaining) < 5) {
-          document.getElementById('rate-banner').style.display = 'block';
-        }
-
+        const headers = githubToken ? { 'Authorization': token ${githubToken} } : {};
+        const res = await fetch(https://api.github.com/repos/${repoPath}, { headers });
         const data = await res.json();
 
-        if (res.status === 404 || data.message === 'Not Found') {
-          result.innerHTML = <div class="error-msg">❌ Dépôt introuvable — vérifiez le format : <code>owner/repo</code></div>;
-          return;
-        }
-        if (res.status === 403 && data.message?.includes('rate limit')) {
-          result.innerHTML = <div class="error-msg">⚠️ Limite GitHub atteinte. Connectez-vous pour continuer.</div>;
-          document.getElementById('rate-banner').style.display = 'block';
-          return;
-        }
-        if (!res.ok) throw new Error('Erreur API');
+        if (!res.ok) throw new Error(data.message || 'Erreur');
 
-        const lang = data.language ? <span class="meta-tag">💻 ${data.language}</span> : '';
-        const license = data.license?.spdx_id ? <span class="meta-tag">📄 ${data.license.spdx_id}</span> : '';
-        const updated = new Date(data.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-
-        result.innerHTML = `
+        resultDiv.innerHTML = `
           <div class="card">
-            <div class="card-header">
-              <h2>📦 ${data.full_name}</h2>
-              <a class="repo-link" href="${data.html_url}" target="_blank" rel="noopener">↗ GitHub</a>
+            <div style="display:flex; justify-content:space-between;">
+              <h3 style="font-family:'Space Mono';">📦 ${data.full_name}</h3>
+              <a href="${data.html_url}" target="_blank" style="color:var(--accent); text-decoration:none;">↗ GitHub</a>
             </div>
             <div class="stats">
-              <div class="stat">
-                <div class="number">⭐ ${data.stargazers_count.toLocaleString('fr-FR')}</div>
-                <div class="label">Étoiles</div>
-              </div>
-              <div class="stat">
-                <div class="number">🍴 ${data.forks_count.toLocaleString('fr-FR')}</div>
-                <div class="label">Forks</div>
-              </div>
-              <div class="stat">
-                <div class="number">👁️ ${data.watchers_count.toLocaleString('fr-FR')}</div>
-                <div class="label">Watchers</div>
-              </div>
-              <div class="stat">
-                <div class="number">🐛 ${data.open_issues_count.toLocaleString('fr-FR')}</div>
-                <div class="label">Issues ouvertes</div>
-              </div>
+              <div class="stat"><b>${data.stargazers_count}</b><br><small>Stars</small></div>
+              <div class="stat"><b>${data.forks_count}</b><br><small>Forks</small></div>
+              <div class="stat"><b>${data.open_issues_count}</b><br><small>Issues</small></div>
+              <div class="stat"><b>${data.subscribers_count || 0}</b><br><small>Watchers</small></div>
             </div>
-            ${data.description ? <div class="description">📝 ${data.description}</div> : ''}
-            <div class="meta-row">
-              ${lang}${license}
-              <span class="meta-tag">🕐 ${updated}</span>
-              ${data.topics?.slice(0,3).map(t => <span class="meta-tag">#${t}</span>).join('') || ''}
+            <p style="color:var(--muted); font-size:0.9em; margin-bottom:15px;">${data.description || 'Pas de description'}</p>
+            <div>
+              <span class="meta-tag">${data.language || 'N/A'}</span>
+              <span class="meta-tag">${data.license?.spdx_id || 'No License'}</span>
             </div>
           </div>`;
       } catch (e) {
-        result.innerHTML = <div class="error-msg">❌ Erreur de connexion — réessayez dans quelques secondes.</div>;
+        resultDiv.innerHTML = <div style="color:var(--red); text-align:center;">Erreur : ${e.message}</div>;
       } finally {
         btn.disabled = false;
-        btn.textContent = '🔍 Analyser';
       }
     }
   </script>
